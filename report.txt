@@ -1,0 +1,10 @@
+Protocal:
+	tags start with #, such as:
+		#HELLO - client to server establish connection
+		#BYE - client quit chat
+		#LIST - list all the people in the chat
+		#
+
+
+	tage start with @, send msg to particular user
+		@USERNAME - talk to some user privately
