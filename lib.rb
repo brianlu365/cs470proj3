@@ -46,6 +46,9 @@ class ChatServer < GServer
     end
  
     #Get and broadcast input until connection returns nil
+	#if the client send #disconnect, try disconnect the client
+	#if the client send #hello, send a welcome message to the client, which include the server name
+	#and a list of all other clients(@chatters)
     loop do
       message = io.gets
  
