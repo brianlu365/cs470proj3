@@ -9,12 +9,18 @@ Shoes.app(:width => 500,:height => 700 ) do
   stacks do
 	para strong("") "Please enter the server address"
 	flow do
-		@server_name = edit_box
-		edit_box :width => 460, :height => 400
+		@entered_text = edit_box :width => 460, :height => 400
 		@connect = button "Connect"
 	end
 	@connect.click{
-		
+		serv_name = @entered_text.text
+		if(not serv_name =~ /(.+):(\d+)/)
+			#clear text box and empty entered_text
+		else
+			hostname = serv_name.split(:)[0]
+			port = serv_name.split(:)[1]
+			client = ChatClient.new (hostname, port)
+		end
 	}
 	# flows do
     #   edit_box
