@@ -9,7 +9,24 @@ class Client
     @name = args[:name]
   end
 
+  def talkTo other, message
+    message = message.strip << "\r\n"
+    begin  
+      other.io.print message
+    rescue
+      this.io.print '#ERROR:Msg failed!'
+    end
+  end
 
+  def addUser other
+    this.print "#ADDUSER:#{other.name}"
+  end
+
+  def rmUser other
+    this.print "#RMUSER:#{other.name}"
+  end
+
+  
 end
 
 
@@ -40,6 +57,18 @@ class ChatServer < GServer
     end
   end
  
+  def whisper message, sender, receiver
+    message = message.strip << "\r\n"
+
+    @mutex.synchronize do
+      begin
+        receiver.print message
+      rescue
+        sender.print '#ERROR:Msg failed!'
+      end
+    end
+  end
+
   #Handle each connection
   def serve io
     # io.print 'Name: '

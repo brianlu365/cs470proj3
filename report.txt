@@ -3,7 +3,8 @@ Protocal:
 		#HELLO - client to server establish connection
 		#BYE - client quit chat
 		#LIST - list all the people in the chat
-		#
+		#RMUSER - remove user from user list on client
+    #ADDUSER - add user to user list on client
 
 
 	tage start with @, send msg to particular user
