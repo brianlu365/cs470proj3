@@ -1,11 +1,12 @@
 Protocal:
 	tags start with #, such as:
-		#HELLO - client to server establish connection
-		#BYE - client quit chat
+    #NAME - tell server client's name
+	?	#HELLO - client to server establish connection
+	?	#BYE - client quit chat
 		#LIST - list all the people in the chat
-		#RMUSER - remove user from user list on client
-    #ADDUSER - add user to user list on client
-
+		#RMUSER:<name> - remove user from user list on client
+    #ADDUSER:<name> - add user to user list on client
+    #WISP:<name>:<msg> - whisper to someone 
 
 	tage start with @, send msg to particular user
 		@USERNAME - talk to some user privately

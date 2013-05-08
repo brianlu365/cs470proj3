@@ -9,8 +9,18 @@ class Client
     @name = args[:name]
   end
 
+  def gets message
+    message = message.strip << "\r\n"
+    message = "#{@name} said: " + message
+    begin
+      this.io.print message
+    end
+  end
+
+
   def talkTo other, message
     message = message.strip << "\r\n"
+    message = "#{@name} whispered: " + message
     begin  
       other.io.print message
     rescue
@@ -26,7 +36,7 @@ class Client
     this.print "#RMUSER:#{other.name}"
   end
 
-  
+
 end
 
 
@@ -47,31 +57,31 @@ class ChatServer < GServer
  
     #Mutex for safety - GServer uses threads
     @mutex.synchronize do
-      @chatters.each do |chatter|
+      @chatters.each do |name,chatter|
         begin
-          chatter.print message unless chatter == sender
+          chatter.gets message unless name == sender
         rescue
-          @chatters.delete chatter
+          @chatters.delete name
         end
       end
     end
   end
  
-  def whisper message, sender, receiver
+  def whisper sender, receiver, message
     message = message.strip << "\r\n"
 
     @mutex.synchronize do
       begin
-        receiver.print message
+        receiver.talkTo receiver, message
       rescue
-        sender.print '#ERROR:Msg failed!'
+        sender.gets '#ERROR:Msg failed!'
       end
     end
   end
 
   #Handle each connection
   def serve io
-    # io.print 'Name: '
+    io.print '#Name'
     name = io.gets
     name.strip!
     io.print '#ERROR:name is nil' if name.nil? #error msg if name is null
@@ -83,14 +93,17 @@ class ChatServer < GServer
  
     #Add to our list of connections
     @mutex.synchronize do
-      @chatters[] << io
+      @chatters[:name] = io
     end
  
     #Get and broadcast input until connection returns nil
     loop do
       message = io.gets
- 
-      if message
+      msg_ary = message.split(":")
+      case msg_ary[0] 
+      when '#WISP'
+        whisper c, @chatters[msg_ary[1]], msg_ary[2..-1].join
+      when '#BOARD' 
         broadcast "#{name}> #{message}", io
       else
         break
