@@ -19,10 +19,12 @@ Shoes.app(:width => 500,:height => 500 ) do
 		stack :width => "50%" do
 			@chat = edit_box :height => "300"
 		end
-		stack :width => "100%" do
-			@msg = edit_box
-		end
 	end
+	para "Please type the message here.\n"
+	stack :width => "500" do
+		@msg = edit_box
+	end
+
 	flow :width => 500, :margin => 10 do
 		@disconnect = button "disconnect"
 		@send = button "send"
