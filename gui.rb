@@ -23,4 +23,8 @@ Shoes.app(:width => 500,:height => 500 ) do
 			@msg = edit_box
 		end
 	end
+	flow :width => 500, :margin => 10 do
+		@disconnect = button "disconnect"
+		@send = button "send"
+	end 
 end
