@@ -9,11 +9,14 @@ class Client
     @name = args[:name]
   end
 
-  def gets message
+  def gets message, sys = nil
     message = message.strip << "\r\n"
-    message = "#{@name} said: " + message
+    # message = sys ?  "#{@name} said: " + message + "\r\n" : message + "\r\n" 
+    # p @io
     begin
-      this.io.print message
+      @io.print message + "\r\n"
+    # rescue
+    #   puts "not get."
     end
   end
 
@@ -24,16 +27,16 @@ class Client
     begin  
       other.io.print message
     rescue
-      this.io.print '#ERROR:Msg failed!'
+      this.io.print '#ERROR:Msg failed!' + "\r\n"
     end
   end
 
   def addUser other
-    this.print "#ADDUSER:#{other.name}"
+    this.print "#ADDUSER:#{other.name}" + "\r\n"
   end
 
   def rmUser other
-    this.print "#RMUSER:#{other.name}"
+    this.print "#RMUSER:#{other.name}" + "\r\n"
   end
 
 
@@ -41,25 +44,27 @@ end
 
 
 class ChatServer < GServer
+  attr_accessor :chatters
   def initialize *args
     super
     #hash of clients, key as name, value as client
     @chatters = {}
- 
+
     #thread safety
     @mutex = Mutex.new 
   end
- 
+
+
   #Send message out to everyone but sender
   def broadcast message, sender = nil
     #Need to use \r\n for our Windows friends
     message = message.strip << "\r\n"
- 
+    p message
     #Mutex for safety - GServer uses threads
     @mutex.synchronize do
       @chatters.each do |name,chatter|
         begin
-          chatter.gets message unless name == sender
+          chatter.gets message unless name == sender.name
         rescue
           @chatters.delete name
         end
@@ -74,28 +79,32 @@ class ChatServer < GServer
       begin
         receiver.talkTo receiver, message
       rescue
-        sender.gets '#ERROR:Msg failed!'
+        sender.gets '#ERROR:Msg failed!' + "\r\n"
       end
     end
   end
 
+
   #Handle each connection
   def serve io
-    io.print '#Name'
+    io.print "#NAME\r\n"
     name = io.gets
     name.strip!
-    io.print '#ERROR:name is nil' if name.nil? #error msg if name is null
+    io.print '#ERROR:name is nil.' if name.nil? #error msg if name is null
 
     c = Client.new(:name => "#{name}",:io => io)
-
+    p c.name
     #msg everybody 
-    broadcast "--+ #{name} has joined +--"
  
     #Add to our list of connections
+    p @chatters
     @mutex.synchronize do
-      @chatters[:name] = io
+      @chatters[name] = c
     end
- 
+    p @chatters
+    broadcast "--+ #{name} has joined +--", c
+    
+
     #Get and broadcast input until connection returns nil
     loop do
       message = io.gets
@@ -104,7 +113,9 @@ class ChatServer < GServer
       when '#WISP'
         whisper c, @chatters[msg_ary[1]], msg_ary[2..-1].join
       when '#BOARD' 
-        broadcast "#{name}> #{message}", io
+        p "okay"
+        p msg_ary[1..-1].join
+        broadcast msg_ary[1..-1].join, c
       else
         break
       end
