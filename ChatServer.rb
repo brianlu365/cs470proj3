@@ -47,7 +47,6 @@ end
 
 
 class ChatServer < GServer
-  attr_accessor :chatters
   def initialize *args
     super
     #hash of clients, key as name, value as client
@@ -119,7 +118,7 @@ class ChatServer < GServer
       case msg_ary[0] 
       when '#WISP'
         whisper c, @chatters[msg_ary[1]], msg_ary[2..-1].join
-      when '#BOARD' 
+      when '#BROAD' 
         p "okay"
         p msg_ary[1..-1].join
         broadcast msg_ary[1..-1].join, c
