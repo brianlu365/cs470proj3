@@ -1,11 +1,13 @@
 require 'socket'
 
 class ChatClient
-  def initialize (hostname,port)
+  attr_reader :s,:name
+  def initialize (hostname,port,name)
     @s = TCPSocket.new hostname, port
+    @name = name
   end
 
-  def get
+  # def get
 
 
 end
