@@ -9,9 +9,12 @@ class Client
     @name = args[:name]
   end
 
-  def gets message, sys = nil
+
+  #get msg from who. If who is not specified then it is a system msg
+  def gets message, who = nil
     message = message.strip << "\r\n"
-    # message = sys ?  "#{@name} said: " + message + "\r\n" : message + "\r\n" 
+    message = who.nil? ?  message : "#{who}: " + message
+
     # p @io
     begin
       @io.print message + "\r\n"
@@ -20,12 +23,12 @@ class Client
     end
   end
 
-
+  #a talk to b message
   def talkTo other, message
     message = message.strip << "\r\n"
     message = "#{@name} whispered: " + message
     begin  
-      other.io.print message
+      other.io.print message + "\r\n"
     rescue
       this.io.print '#ERROR:Msg failed!' + "\r\n"
     end
@@ -64,7 +67,11 @@ class ChatServer < GServer
     @mutex.synchronize do
       @chatters.each do |name,chatter|
         begin
-          chatter.gets message unless name == sender.name
+          if sender
+            chatter.gets message,sender.name unless name == sender.name
+          else
+            chatter.gets message
+          end
         rescue
           @chatters.delete name
         end
@@ -77,7 +84,7 @@ class ChatServer < GServer
 
     @mutex.synchronize do
       begin
-        receiver.talkTo receiver, message
+        sender.talkTo receiver, message
       rescue
         sender.gets '#ERROR:Msg failed!' + "\r\n"
       end
@@ -102,7 +109,7 @@ class ChatServer < GServer
       @chatters[name] = c
     end
     p @chatters
-    broadcast "--+ #{name} has joined +--", c
+    broadcast "--+ #{name} has joined +--"
     
 
     #Get and broadcast input until connection returns nil
