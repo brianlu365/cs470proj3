@@ -4,71 +4,86 @@ Shoes.app(:title => "Chat Client",:width => 500,:height => 700, :resizable => fa
     serv_addr = ask("Please, enter server address.") #ask for server address
   end while not serv_addr =~ /(.+):(\d+)/
   begin
-    name = ask("What's your name?")
+    name = ask("What's your name?") #ask for username
   end while name.nil?
   hostname = serv_addr.split(':')[0]
   port = serv_addr.split(':')[1]
+  s = ChatClient.new(hostname,port,name) #create connect to server
+  s.sendName s.name #send name to server
+
   flow :margin => 10, :height => "100%" do
     stack  do
       para "#{serv_addr}"
       flow :width => "100%" do
         stack :width => "25%" do
           para "friend list"
-          edit_box :width => "100%", :height => 400
+          @friend_box = stack :width => "100%",:height  => 400, :scroll=>true do
+            background yellow
+            @p1 = para ""
+            # # para = s.gets
+            # para s.gets
+          end
         end
-        edit_box :width => "75%", :height => 500
+        @read_box = stack :width => "75%",:height  => 500, :scroll=>true do
+          background whitesmoke
+        end
       end
       flow :width => "100%", :height => 40 do
       end
       flow do
-        edit_box :width => "75%"
+        @write_box = edit_box :width => "75%"
         stack :width => "25%" do 
           flow :width => "100%",:height => "60%" do
           end
-          button "send" 
+          @send_button = button "send" 
+          @send_button.click do
+            if not @write_box.text.nil?
+              s.send @write_box.text
+
+              @write_box.text = ""
+              
+            end
+          end
         end
       end
     end
   end
-  # background "#EFC"
-  # flow :width => 500, :margin => 10 do
-  #   stack :width => "50%" do
-  #     @names = edit_box :height => "300"
-  #   end
-  #   stack :width => "50%" do
-  #     @chat = edit_box :height => "300"
-  #   end
-  #   para "Please type the message here.\n"
-  #   stack :width => "500" do
-  #     @msg = edit_box
-  #   end
-  #   @disconnect = button "disconnect"
-  #   @send = button "send"
-  # end
-  # serv = TCPSocket.open(hostname,port)
- #  stacks do
-	# para strong("") "Please enter the server address"
-	# flow do
-	# 	@entered_text = edit_box :width => 460, :height => 400
-	# 	@connect = button "Connect"
-	# end
-	# @connect.click{
-	# 	serv_name = @entered_text.text
-	# 	if(not serv_name =~ /(.+):(\d+)/)
-	# 		#clear text box and empty entered_text
-	# 	else
-	# 		hostname = serv_name.split(:)[0]
-	# 		port = serv_name.split(:)[1]
-	# 		client = ChatClient.new (hostname, port)
-	# 	end
-	# }
-	# flows do
-      # edit_box :width => 400, :height => 400
-      # flows do
-      #   edit_box #:width => 400, :height => 250
-      #   button "send"
-      # end
-    # end
-  # end
-  
+
+  Thread.new {
+    loop do
+      if line = s.gets
+        ary = line.split(":")
+        case ary[0]
+        when "#FRIEND"
+          s.friends = ary[1].split(",")
+          @p1.text = s.friends.join("\r")
+        when "#JOINED"
+          s.addFriend ary[1]
+          @p1.text = s.friends.join("\r")
+
+        when "#LEFT"
+          s.friends.delete ary[1]
+          @p1.text = s.friends.join("\r")
+        when "#ERROR"
+          @read_box.append do 
+            stack :width => "100%" do
+              background red
+              para ary[1]
+            end
+          end
+          @read_box.scroll_top=@read_box.scroll_max
+        else
+          @read_box.append do 
+            stack :width => "100%" do
+              background whitesmoke
+              para line
+            end
+          end
+          @read_box.scroll_top=@read_box.scroll_max
+        end
+      end
+    end
+  }
+
+
 end

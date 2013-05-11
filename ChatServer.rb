@@ -67,7 +67,7 @@ class ChatServer < GServer
       @chatters.each do |name,chatter|
         begin
           if sender
-            chatter.gets message,sender.name unless name == sender.name
+            chatter.gets message,sender.name #unless name == sender.name
           else
             chatter.gets message
           end
@@ -93,7 +93,7 @@ class ChatServer < GServer
 
   #Handle each connection
   def serve io
-    io.print "#NAME\r\n"
+    # io.print "#NAME\r\n"
     name = io.gets
     name.strip!
     io.print '#ERROR:name is nil.' if name.nil? #error msg if name is null
@@ -104,11 +104,12 @@ class ChatServer < GServer
  
     #Add to our list of connections
     p @chatters
+    c.io.print  "#FRIEND:#{@chatters.keys.join(",")}\r\n"
     @mutex.synchronize do
       @chatters[name] = c
     end
     p @chatters
-    broadcast "--+ #{name} has joined +--"
+    broadcast "#JOINED:#{name}"
     
 
     #Get and broadcast input until connection returns nil
@@ -119,7 +120,7 @@ class ChatServer < GServer
       when '#WISP'
         whisper c, @chatters[msg_ary[1]], msg_ary[2..-1].join
       when '#BROAD' 
-        p "okay"
+        # p "okay"
         p msg_ary[1..-1].join
         broadcast msg_ary[1..-1].join, c
       else
@@ -127,6 +128,9 @@ class ChatServer < GServer
       end
     end
  
-    broadcast "--+ #{name} has left +--"
+    broadcast "#LEFT:#{name}"
+    @mutex.synchronize do
+      @chatters.delete name
+    end
   end
 end
